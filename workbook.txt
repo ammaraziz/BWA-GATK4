@@ -1,0 +1,64 @@
+Learning to use the new HaplotypeCaller for future incorporation into SPANDx vAmar
+
+#Resources
+1. GATK Best practices for germline variant discovery
+~ https://software.broadinstitute.org/gatk/best-practices/workflow?id=11145
+~ https://gatkforums.broadinstitute.org/gatk/discussion/3893/calling-variants-on-cohorts-of-samples-using-the-haplotypecaller-in-gvcf-mode
+	~ Good overview of all individual steps 
+2. GATK Tutorial list
+~ https://software.broadinstitute.org/gatk/documentation/topic?name=tutorials&v=3
+~ https://software.broadinstitute.org/gatk/documentation/article?id=2803
+3. Data pre-processing 
+~ https://software.broadinstitute.org/gatk/best-practices/workflow?id=11165
+~ Remove dups etc
+4. Example of workflow with commands
+~ https://approachedinthelimit.wordpress.com/2016/06/29/updated-gatk-pipeline-to-haplotypecaller-gvcf/
+5. Filtering parameters:
+https://gatkforums.broadinstitute.org/gatk/discussion/11097/cant-use-vqsr-on-non-model-organism-or-small-dataset
+
+#Steps in mini-pipeline
+1. Map to raw fastq reads to reference
+~ Tool: BWA-MEM
+~ Command to use: 
+
+2. Remove duplciates
+~ Tool: GATK MarkDuplicates 
+~ Command: 
+
+3. Base Recalibration
+~ Skip
+
+4. Call Variants Per Sample
+~ Tool: GATK HaplotypeCaller in GVCF mode
+~ Command:
+~ Ploidy needs to be set here https://gatkforums.broadinstitute.org/gatk/discussion/7541/combinegvcfs-genotypegvcfs-and-ploidy 
+
+5. Consolidate GVCFs
+~ Tool: CombineGVCFs (GenomicsDBImport for diploid only..NOT ANY MORE!)
+~ Command:
+
+6. Joint-Call Cohort
+~ Tool: GenotypeGVCFs
+~ Command: 
+
+7. VCF Filtering 
+Good resource: https://software.broadinstitute.org/gatk/documentation/article.php?id=11069
+~ HaplotypeCaller includes a lot more statistics. Of interest:
+	~ StrandOddsRatio and it's AS variant
+	~ GQ maybe be better than QUAL in multisample comparison
+	~ MQRankSum - compares mapping qualities of reads to ref/alt
+	~ Expressions used must meet a specific criteria: https://github.com/broadinstitute/gatk/issues/5362
+	~ HaplotypeScore needs to be dropped
+	https://software.broadinstitute.org/gatk/documentation/tooldocs/3.8-0/org_broadinstitute_gatk_tools_walkers_annotator_HaplotypeScore.php
+	~ GATK recommends using SOR over FS:
+	https://gatkforums.broadinstitute.org/gatk/discussion/5533/strandoddsratio-computation
+	
+8. Select Variants
+~ Tool: SelectVariants
+~ Command: gatk SelectVariants -R Homo_sapiens_assembly38.fasta -V input.vcf --select-type-to-include SNP -O output.vcf
+~ Options to include: 
+		~ --select-type-to-include (SNP/INDEL)
+		~ "FILTER == AFFilter" 
+
+https://software.broadinstitute.org/gatk/documentation/tooldocs/current/org_broadinstitute_hellbender_tools_walkers_variantutils_SelectVariants.php
+

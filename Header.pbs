@@ -1,0 +1,28 @@
+#!/bin/bash
+#PBS -S /bin/sh
+#PBS -o logs/
+#$ -cwd
+#$ -S /bin/bash
+#$ -j y
+
+if [ ! $PBS_O_WORKDIR ]
+    then
+        PBS_O_WORKDIR="$PWD"
+fi
+
+cd $PBS_O_WORKDIR
+
+#load modules
+. $MODULESHOME/init/bash
+module load python/2.7.13
+
+if [ ! "$command" ]
+    then
+	    echo -e "Error: script must be supplied with a command"
+	    exit 1
+	else
+    	echo "$command"
+	    eval "$command"
+fi
+sleep 5
+exit 0
